@@ -1,5 +1,8 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
+
+
+
 	"Parameters": {
 		"CodeBucket": {
 			"Type": "String",
@@ -58,6 +61,9 @@
 			"Description": "Enable copying snapshots across accounts. Set to FALSE if your source snapshosts are not on a different account"
 		}
 	},
+
+
+
 	"Conditions": {
 		"DefaultBucket": {
 			"Fn::Equals": [{
@@ -75,6 +81,9 @@
 			}, "TRUE" ]
 		}
 	},
+
+
+
 	"Mappings": {
 		"Buckets": {
 			"us-east-1": {
@@ -115,6 +124,9 @@
 			}
 		}
 	},
+
+
+
 	"Resources": {
 		"topicCopyFailedDest": {
 			"Type": "AWS::SNS::Topic",
@@ -171,14 +183,14 @@
 		"alarmcwCopyFailedDest": {
 			"Type": "AWS::CloudWatch::Alarm",
 			"Properties": {
-				"ActionsEnabled": "true",
+				"ActionsEnabled": true,
 				"ComparisonOperator": "GreaterThanOrEqualToThreshold",
-				"EvaluationPeriods": "1",
+				"EvaluationPeriods": 1,
 				"MetricName": "ExecutionsFailed",
 				"Namespace": "AWS/States",
-				"Period": "300",
+				"Period": 300,
 				"Statistic": "Sum",
-				"Threshold": "1.0",
+				"Threshold": 1.0,
 				"AlarmActions": [{
 					"Ref": "topicCopyFailedDest"
 				}],
@@ -194,14 +206,14 @@
 			"Type": "AWS::CloudWatch::Alarm",
 			"Condition": "DeleteOld",
 			"Properties": {
-				"ActionsEnabled": "true",
+				"ActionsEnabled": true,
 				"ComparisonOperator": "GreaterThanOrEqualToThreshold",
-				"EvaluationPeriods": "2",
+				"EvaluationPeriods": 2,
 				"MetricName": "ExecutionsFailed",
 				"Namespace": "AWS/States",
-				"Period": "3600",
+				"Period": 3600,
 				"Statistic": "Sum",
-				"Threshold": "2.0",
+				"Threshold": 2.0,
 				"AlarmActions": [{
 					"Ref": "topicDeleteOldFailedDest"
 				}],
@@ -594,9 +606,8 @@
 			}
 		},
 		"cwloggroupDeleteOldSnapshotsDestRDS":{
+			"Condition": "DeleteOld",
 			"Type": "AWS::Logs::LogGroup",
-			"Description": "Log group for the lambdaCopySnapshotsRDS function's logs",
-			"DependsOn": "lambdaDeleteOldDestRDS",
 			"Properties": {
 				"RetentionInDays": { "Ref": "LambdaCWLogRetention" }, 
 				"LogGroupName": { 
@@ -606,8 +617,6 @@
 		},
 		"cwloggrouplambdaCopySnapshotsRDS":{
 			"Type": "AWS::Logs::LogGroup",
-			"Description": "Log group for the lambdaCopySnapshotsRDS function's logs",
-			"DependsOn": "lambdaCopySnapshotsRDS",
 			"Properties": {
 				"RetentionInDays": { "Ref": "LambdaCWLogRetention" }, 
 				"LogGroupName": { 
@@ -616,6 +625,9 @@
 			}
 		}
 	},
+
+
+	
 	"Outputs": {
 		"CopyFailedTopic": {
 			"Description": "Subscribe to this topic to receive alerts of failed copies",

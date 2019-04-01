@@ -1,5 +1,8 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
+
+
+
 	"Parameters": {
 		"CodeBucket": {
 			"Type": "String",
@@ -64,6 +67,9 @@
 			"AllowedValues": ["TRUE", "FALSE"]
 		}
 	},
+
+
+
 	"Conditions": {
 		"Share": {
 			"Fn::Equals": [{
@@ -81,6 +87,9 @@
 			}, "DEFAULT_BUCKET"]
 		}
 	},
+
+
+
 	"Mappings": {
 		"Buckets": {
 			"us-east-1": {
@@ -121,6 +130,9 @@
 			}
 		}
 	},
+
+
+	
 	"Resources": {
 		"topicBackupsFailed": {
 			"Type": "AWS::SNS::Topic",
@@ -187,14 +199,14 @@
 		"alarmcwBackupsFailed": {
 			"Type": "AWS::CloudWatch::Alarm",
 			"Properties": {
-				"ActionsEnabled": "true",
+				"ActionsEnabled": true,
 				"ComparisonOperator": "GreaterThanOrEqualToThreshold",
-				"EvaluationPeriods": "1",
+				"EvaluationPeriods": 1,
 				"MetricName": "ExecutionsFailed",
 				"Namespace": "AWS/States",
-				"Period": "300",
+				"Period": 300,
 				"Statistic": "Sum",
-				"Threshold": "1.0",
+				"Threshold": 1.0,
 				"AlarmActions": [{
 					"Ref": "topicBackupsFailed"
 				}],
@@ -210,14 +222,14 @@
 			"Condition": "Share",
 			"Type": "AWS::CloudWatch::Alarm",
 			"Properties": {
-				"ActionsEnabled": "true",
+				"ActionsEnabled": true,
 				"ComparisonOperator": "GreaterThanOrEqualToThreshold",
-				"EvaluationPeriods": "2",
+				"EvaluationPeriods": 2,
 				"MetricName": "ExecutionsFailed",
 				"Namespace": "AWS/States",
-				"Period": "3600",
+				"Period": 3600,
 				"Statistic": "Sum",
-				"Threshold": "2.0",
+				"Threshold": 2.0,
 				"AlarmActions": [{
 					"Ref": "topicShareFailed"
 				}],
@@ -233,14 +245,14 @@
 			"Condition": "DeleteOld",
 			"Type": "AWS::CloudWatch::Alarm",
 			"Properties": {
-				"ActionsEnabled": "true",
+				"ActionsEnabled": true,
 				"ComparisonOperator": "GreaterThanOrEqualToThreshold",
-				"EvaluationPeriods": "2",
+				"EvaluationPeriods": 2,
 				"MetricName": "ExecutionsFailed",
 				"Namespace": "AWS/States",
-				"Period": "3600",
+				"Period": 3600,
 				"Statistic": "Sum",
-				"Threshold": "2.0",
+				"Threshold": 2.0,
 				"AlarmActions": [{
 					"Ref": "topicDeleteOldFailed"
 				}],
@@ -703,8 +715,6 @@
 		},
 		"cwloggrouplambdaTakeSnapshotsRDS":{
 			"Type": "AWS::Logs::LogGroup",
-			"Description": "Log group for the lambdaTakeSnapshotsRDS function's logs",
-			"DependsOn": "lambdaTakeSnapshotsRDS",
 			"Properties": {
 				"RetentionInDays": { "Ref": "LambdaCWLogRetention" }, 
 				"LogGroupName": { 
@@ -715,8 +725,6 @@
 		"cwloggrouplambdaShareSnapshotsRDS":{
 			"Condition": "Share",
 			"Type": "AWS::Logs::LogGroup",
-			"Description": "Log group for the lambdaShareSnapshotsRDS function's logs",
-			"DependsOn": "lambdaShareSnapshotsRDS",
 			"Properties": {
 				"RetentionInDays": { "Ref": "LambdaCWLogRetention" }, 
 				"LogGroupName": { 
@@ -725,9 +733,8 @@
 			}
 		},
 		"cwloggrouplambdaDeleteOldSnapshotsRDS":{
+			"Condition": "DeleteOld",
 			"Type": "AWS::Logs::LogGroup",
-			"Description": "Log group for the lambdaDeleteOldSnapshotsRDS function's logs",
-			"DependsOn": "lambdaDeleteOldSnapshotsRDS",
 			"Properties": {
 				"RetentionInDays": { "Ref": "LambdaCWLogRetention" }, 
 				"LogGroupName": { 
@@ -736,6 +743,9 @@
 			}
 		}
 	},
+
+
+
 	"Outputs": {
 		"BackupFailedTopic": {
 			"Description": "Subscribe to this topic to receive alerts of failed backups",
