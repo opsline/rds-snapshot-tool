@@ -21,10 +21,10 @@ Parameters:
     Description: 'Destination account with no dashes.'
   ShareSnapshots:
     Type: String
-    Default: TRUE
+    Default: 'TRUE'
     AllowedValues:
-      - TRUE
-      - FALSE
+      - 'TRUE'
+      - 'FALSE'
   BackupSchedule:
     Type: String
     Default: '0 1 * * ? *'
@@ -47,27 +47,27 @@ Parameters:
     Description: 'Set to the region where your RDS instances run, only if such region does not support Step Functions. Leave as NO otherwise'
   DeleteOldSnapshots:
     Type: String
-    Default: TRUE
+    Default: 'TRUE'
     Description: 'Set to TRUE to enable deletion of snapshot based on RetentionDays. Set to FALSE to disable'
     AllowedValues:
-      - TRUE
-      - FALSE
+      - 'TRUE'
+      - 'FALSE'
   TaggedInstance:
     Type: String
-    Default: FALSE
+    Default: 'FALSE'
     Description: 'Set to TRUE to filter instances that have tag CopyDBSnapshot set to True. Set to FALSE to disable'
     AllowedValues:
-      - TRUE
-      - FALSE
+      - 'TRUE'
+      - 'FALSE'
 Conditions:
   Share:
     Fn::Equals:
       - Ref: ShareSnapshots
-      - TRUE
+      - 'TRUE'
   DeleteOld:
     Fn::Equals:
       - Ref: DeleteOldSnapshots
-      - TRUE
+      - 'TRUE'
   DefaultBucket:
     Fn::Equals:
       - Ref: CodeBucket
@@ -341,11 +341,7 @@ Resources:
           - Effect: Allow
             Principal:
               Service:
-                Fn::Join:
-                  - ''
-                  - - states.
-                    - Ref: 'AWS::Region'
-                    - .amazonaws.com
+                Fn::Sub: 'states.${AWS::Region}.amazonaws.com'
             Action: 'sts:AssumeRole'
       Policies:
         - PolicyName: inline_policy_snapshots_rds
@@ -359,48 +355,32 @@ Resources:
   stateMachineTakeSnapshotsRDS:
     Type: 'AWS::StepFunctions::StateMachine'
     Properties:
-      DefinitionString:
-        Fn::Join:
-          - ''
-          - - Fn::Join:
-                - |
-
-                - - ' {"Comment":"Triggers snapshot backup for RDS instances",'
-                  - ' "StartAt":"TakeSnapshots",'
-                  - ' "States":{'
-                  - '   "TakeSnapshots":{'
-                  - '     "Type":"Task",'
-                  - '     "Resource": '
-            - '"'
-            - Fn::GetAtt:
-                - lambdaTakeSnapshotsRDS
-                - Arn
-            - |-
-              "
-              ,
-            - Fn::Join:
-                - |
-
-                - - '     "Retry":['
-                  - '       {'
-                  - '       "ErrorEquals":[ '
-                  - '         "SnapshotToolException"'
-                  - '       ],'
-                  - '       "IntervalSeconds":300,'
-                  - '       "MaxAttempts":20,'
-                  - '       "BackoffRate":1'
-                  - '     },'
-                  - '     {'
-                  - '      "ErrorEquals":[ '
-                  - '         "States.ALL"], '
-                  - '         "IntervalSeconds": 30,'
-                  - '         "MaxAttempts": 20,'
-                  - '         "BackoffRate": 1'
-                  - '     }'
-                  - '    ],'
-                  - '    "End": true '
-                  - '   }'
-                  - ' }}'
+      DefinitionString: !Sub |-
+        {
+          "Comment": "Triggers snapshot backup for RDS instances",
+          "StartAt": "TakeSnapshots",
+          "States": {
+            "TakeSnapshots": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${lambdaTakeSnapshotsRDS}",
+              "Retry": [
+                {
+                  "ErrorEquals": [ "SnapshotToolException" ],
+                  "IntervalSeconds": 300,
+                  "MaxAttempts": 20,
+                  "BackoffRate": 1
+                },
+                {
+                  "ErrorEquals": [ "States.ALL" ], 
+                  "IntervalSeconds": 30,
+                  "MaxAttempts": 20,
+                  "BackoffRate": 1
+                }
+              ],
+              "End": true 
+            }
+          }
+        }
       RoleArn:
         Fn::GetAtt:
           - iamroleStateExecution
@@ -409,48 +389,32 @@ Resources:
     Type: 'AWS::StepFunctions::StateMachine'
     Condition: Share
     Properties:
-      DefinitionString:
-        Fn::Join:
-          - ''
-          - - Fn::Join:
-                - |
-
-                - - ' {"Comment":"Shares snapshots with DEST_ACCOUNT",'
-                  - ' "StartAt":"ShareSnapshots",'
-                  - ' "States":{'
-                  - '   "ShareSnapshots":{'
-                  - '     "Type":"Task",'
-                  - '     "Resource": '
-            - '"'
-            - Fn::GetAtt:
-                - lambdaShareSnapshotsRDS
-                - Arn
-            - |-
-              "
-              ,
-            - Fn::Join:
-                - |
-
-                - - '     "Retry":['
-                  - '       {'
-                  - '       "ErrorEquals":[ '
-                  - '         "SnapshotToolException"'
-                  - '       ],'
-                  - '       "IntervalSeconds":300,'
-                  - '       "MaxAttempts":3,'
-                  - '       "BackoffRate":1'
-                  - '     },'
-                  - '     {'
-                  - '      "ErrorEquals":[ '
-                  - '         "States.ALL"], '
-                  - '         "IntervalSeconds": 30,'
-                  - '         "MaxAttempts": 20,'
-                  - '         "BackoffRate": 1'
-                  - '     }'
-                  - '    ],'
-                  - '    "End": true '
-                  - '   }'
-                  - ' }}'
+      DefinitionString:  !Sub |-
+        {
+          "Comment": "Shares snapshots with DEST_ACCOUNT",
+          "StartAt": "ShareSnapshots",
+          "States": {
+            "ShareSnapshots": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${lambdaShareSnapshotsRDS}",
+              "Retry": [
+                {
+                  "ErrorEquals": [ "SnapshotToolException" ],
+                  "IntervalSeconds": 300,
+                  "MaxAttempts": 3,
+                  "BackoffRate": 1
+                },
+                {
+                  "ErrorEquals": [ "States.ALL" ],
+                  "IntervalSeconds": 30,
+                  "MaxAttempts": 20,
+                  "BackoffRate": 1
+                }
+              ],
+              "End": true
+            }
+          }
+        }
       RoleArn:
         Fn::GetAtt:
           - iamroleStateExecution
@@ -459,48 +423,32 @@ Resources:
     Type: 'AWS::StepFunctions::StateMachine'
     Condition: DeleteOld
     Properties:
-      DefinitionString:
-        Fn::Join:
-          - ''
-          - - Fn::Join:
-                - |
-
-                - - ' {"Comment":"DeleteOld management for RDS snapshots",'
-                  - ' "StartAt":"DeleteOld",'
-                  - ' "States":{'
-                  - '   "DeleteOld":{'
-                  - '     "Type":"Task",'
-                  - '     "Resource": '
-            - '"'
-            - Fn::GetAtt:
-                - lambdaDeleteOldSnapshotsRDS
-                - Arn
-            - |-
-              "
-              ,
-            - Fn::Join:
-                - |
-
-                - - '     "Retry":['
-                  - '       {'
-                  - '       "ErrorEquals":[ '
-                  - '         "SnapshotToolException"'
-                  - '       ],'
-                  - '       "IntervalSeconds":300,'
-                  - '       "MaxAttempts":7,'
-                  - '       "BackoffRate":1'
-                  - '     },'
-                  - '     {'
-                  - '      "ErrorEquals":[ '
-                  - '         "States.ALL"], '
-                  - '         "IntervalSeconds": 30,'
-                  - '         "MaxAttempts": 20,'
-                  - '         "BackoffRate": 1'
-                  - '     }'
-                  - '    ],'
-                  - '    "End": true '
-                  - '   }'
-                  - ' }}'
+      DefinitionString: !Sub |-
+        {
+          "Comment": "DeleteOld management for RDS snapshots",
+          "StartAt": "DeleteOld",
+          "States": {
+            "DeleteOld": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${lambdaDeleteOldSnapshotsRDS}",
+              "Retry": [
+                {
+                  "ErrorEquals": [ "SnapshotToolException" ],
+                  "IntervalSeconds": 300,
+                  "MaxAttempts": 7,
+                  "BackoffRate": 1
+                },
+                {
+                  "ErrorEquals": [ "States.ALL" ],
+                  "IntervalSeconds": 30,
+                  "MaxAttempts": 20,
+                  "BackoffRate": 1
+                }
+              ],
+              "End": true
+            }
+          }
+        }
       RoleArn:
         Fn::GetAtt:
           - iamroleStateExecution
@@ -529,11 +477,7 @@ Resources:
     Properties:
       Description: Triggers the TakeSnapshotsRDS state machine
       ScheduleExpression:
-        Fn::Join:
-          - ''
-          - - cron(
-            - Ref: BackupSchedule
-            - )
+        Fn::Sub: 'cron(${BackupSchedule})'
       State: ENABLED
       Targets:
         - Arn:
@@ -548,12 +492,7 @@ Resources:
     Condition: Share
     Properties:
       Description: Triggers the ShareSnapshotsRDS state machine
-      ScheduleExpression:
-        Fn::Join:
-          - ''
-          - - cron(
-            - '/10 * * * ? *'
-            - )
+      ScheduleExpression: 'cron(/10 * * * ? *)'
       State: ENABLED
       Targets:
         - Arn:
@@ -568,12 +507,7 @@ Resources:
     Condition: DeleteOld
     Properties:
       Description: Triggers the DeleteOldSnapshotsRDS state machine
-      ScheduleExpression:
-        Fn::Join:
-          - ''
-          - - cron(
-            - '0 /1 * * ? *'
-            - )
+      ScheduleExpression: 'cron(0 /1 * * ? *)'
       State: ENABLED
       Targets:
         - Arn:
@@ -589,10 +523,7 @@ Resources:
       RetentionInDays:
         Ref: LambdaCWLogRetention
       LogGroupName:
-        Fn::Sub:
-          - '/aws/lambda/${func}'
-          - func:
-              Ref: lambdaTakeSnapshotsRDS
+        Fn::Sub: '/aws/lambda/${lambdaTakeSnapshotsRDS}'
   cwloggrouplambdaShareSnapshotsRDS:
     Condition: Share
     Type: 'AWS::Logs::LogGroup'
@@ -600,10 +531,7 @@ Resources:
       RetentionInDays:
         Ref: LambdaCWLogRetention
       LogGroupName:
-        Fn::Sub:
-          - '/aws/lambda/${func}'
-          - func:
-              Ref: lambdaShareSnapshotsRDS
+        Fn::Sub: '/aws/lambda/${lambdaShareSnapshotsRDS}'
   cwloggrouplambdaDeleteOldSnapshotsRDS:
     Condition: DeleteOld
     Type: 'AWS::Logs::LogGroup'
@@ -611,10 +539,7 @@ Resources:
       RetentionInDays:
         Ref: LambdaCWLogRetention
       LogGroupName:
-        Fn::Sub:
-          - '/aws/lambda/${func}'
-          - func:
-              Ref: lambdaDeleteOldSnapshotsRDS
+        Fn::Sub: '/aws/lambda/${lambdaDeleteOldSnapshotsRDS}'
 
 
 
