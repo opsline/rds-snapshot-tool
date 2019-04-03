@@ -16,11 +16,13 @@
 
 # Override S3 destination by changing this variable or setting it in the
 # environment
-S3DEST?=[YOUR BUCKET HERE]
+S3DEST?=opsline-lambda-east
 
 # Set these if, for example, you use profiles on the AWS command line
 # or if your 'aws' executable is in a weird place.
-AWSARGS=--region [YOUR REGION] --profile [YOUR PROFILE, or 'default', or remove this]
+AWS_DEFAULT_REGION?=us-east-1
+AWS_PROFILE?=default
+AWSARGS=--region $(AWS_DEFAULT_REGION) --profile $(AWS_PROFILE)
 AWSCMD=aws
 ZIPCMD=zip
 
@@ -41,8 +43,7 @@ clean:
 	rm -f ._*
 
 ._%: %.zip
-	"$(AWSCMD)" $(AWSARGS) s3 cp "$<" "s3://$(S3DEST)" \
-		--grants read=uri=http://acs.amazonaws.com/groups/global/AllUsers
+	"$(AWSCMD)" $(AWSARGS) s3 cp "$<" "s3://$(S3DEST)"
 	cp "$<" "$@"
 
 # This rule is a BSD make style rule that says "to make foo.zip, call
