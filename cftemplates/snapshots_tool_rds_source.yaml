@@ -43,7 +43,7 @@ Parameters:
     Description: 'Number of days to retain logs from the lambda functions in CloudWatch Logs'
   SourceRegionOverride:
     Type: String
-    Default: NO
+    Default: 'NO'
     Description: 'Set to the region where your RDS instances run, only if such region does not support Step Functions. Leave as NO otherwise'
   DeleteOldSnapshots:
     Type: String
