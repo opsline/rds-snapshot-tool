@@ -10,7 +10,7 @@ resource "aws_sfn_state_machine" "take_rds_snapshot" {
     "States": {
     "TakeSnapshots": {
         "Type": "Task",
-        "Resource": "arn:aws:lambda:${var.region}:${var.account_id}:function:take_rds_snapshot_function",
+        "Resource": "arn:aws:lambda:${var.region}:${var.source_account}:function:take_rds_snapshot_function",
         "Retry": [
         {
             "ErrorEquals": [ "SnapshotToolException" ],
@@ -43,7 +43,7 @@ resource "aws_sfn_state_machine" "share_rds_snapshot" {
     "States": {
     "ShareSnapshots": {
         "Type": "Task",
-        "Resource": "arn:aws:lambda:${var.region}:${var.account_id}:function:share_rds_snapshot_function",
+        "Resource": "arn:aws:lambda:${var.region}:${var.source_account}:function:share_rds_snapshot_function",
         "Retry": [
         {
             "ErrorEquals": [ "SnapshotToolException" ],
@@ -76,7 +76,7 @@ resource "aws_sfn_state_machine" "delete_old_rds_snapshot" {
     "States": {
     "DeleteOld": {
         "Type": "Task",
-        "Resource": "arn:aws:lambda:${var.region}:${var.account_id}:function:delete_old_rds_snapshot_function",
+        "Resource": "arn:aws:lambda:${var.region}:${var.source_account}:function:delete_old_rds_snapshot_function",
         "Retry": [
         {
             "ErrorEquals": [ "SnapshotToolException" ],
