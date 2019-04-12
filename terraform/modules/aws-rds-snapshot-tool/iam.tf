@@ -76,7 +76,7 @@ resource "aws_iam_role" "state_execution_role" {
     {
       "Action": "sts:AssumeRole",
       "Principal": {
-        "Service": "states.${AWS::Region}.amazonaws.com"
+        "Service": "states.${var.region}.amazonaws.com"
       },
       "Effect": "Allow",
       "Sid": ""
@@ -97,6 +97,46 @@ resource "aws_iam_role_policy" "rds_snapshot_lambda_policy" {
     {
       "Action": [
         "lambda:InvokeFunction"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role" "step_invocation_role" {
+  name = "step_invocation_role"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "events.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "rds_snapshot_step_invocation_policy" {
+  name = "rds_snapshot_step_invocation_policy"
+  role = "${aws_iam_role.step_invocation_role.id}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "states:StartExecution"
       ],
       "Effect": "Allow",
       "Resource": "*"

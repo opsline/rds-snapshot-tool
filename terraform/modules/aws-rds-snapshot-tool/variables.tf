@@ -7,8 +7,13 @@ variable "profile" {
   type = "string"
 }
 
+variable "account_id" {
+  type = "string"
+}
 
-# Tool settings
+
+
+# Source Settings
 variable "code_bucket" {
   type = "string"
   # Default: DEFAULT_BUCKET
@@ -82,3 +87,5 @@ variable "tagged_instance" {
   # Description: 'Set to TRUE to filter instances that have tag CopyDBSnapshot set to True. Set to FALSE to disable'
   # AllowedValues: 'TRUE' OR 'FALSE'
 }
+
+# Destination Setting ... if not duplicate
