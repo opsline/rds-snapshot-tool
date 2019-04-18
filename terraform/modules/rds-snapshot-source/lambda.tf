@@ -1,6 +1,6 @@
 resource "aws_lambda_function" "take_rds_snapshot_function" {
   function_name = "take_rds_snapshot_function"
-  s3_bucket     = "${var.code_bucket}"
+  s3_bucket     = "snapshots-tool-rds-${var.region}"
   s3_key        = "take_snapshots_rds.zip"
   memory_size   = "512"
   description   = "This functions triggers snapshots creation for RDS instances. It checks for existing snapshots following the pattern and interval specified in the environment variables with the following format: <dbinstancename>-YYYY-MM-DD-HH-MM"
@@ -23,7 +23,7 @@ resource "aws_lambda_function" "take_rds_snapshot_function" {
 
 resource "aws_lambda_function" "share_rds_snapshot_function" {
   function_name = "share_rds_snapshot_function"
-  s3_bucket     = "${var.code_bucket}"
+  s3_bucket     = "snapshots-tool-rds-${var.region}"
   s3_key        = "share_snapshots_rds.zip"
   memory_size   = "512"
   description   = "This function shares snapshots created by the take_snapshots_rds function with DEST_ACCOUNT specified in the environment variables."
@@ -45,7 +45,7 @@ resource "aws_lambda_function" "share_rds_snapshot_function" {
 
 resource "aws_lambda_function" "delete_old_rds_snapshot_function" {
   function_name = "delete_old_rds_snapshot_function"
-  s3_bucket     = "${var.code_bucket}"
+  s3_bucket     = "snapshots-tool-rds-${var.region}"
   s3_key        = "delete_old_snapshots_rds.zip"
   memory_size   = "512"
   description   = "This function deletes snapshots created by the take_snapshots_rds function."

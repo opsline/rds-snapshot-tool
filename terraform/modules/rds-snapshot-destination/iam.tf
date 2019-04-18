@@ -1,3 +1,5 @@
+# Destination Resources
+
 resource "aws_iam_role" "rds_snapshot_role" {
   name = "rds_snapshot_role"
 
@@ -60,6 +62,46 @@ resource "aws_iam_role_policy" "rds_snapshot_policy" {
       ],
       "Effect": "Allow",
       "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "rds_snapshot_kms_policy" {
+  name = "rds_snapshot_kms_policy"
+  role = "${aws_iam_role.rds_snapshot_role.id}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowUseOfTheKey",
+      "Action": [
+        "kms:Encrypt",
+        "kms:Decrypt",
+        "kms:ReEncrypt*",
+        "kms:GenerateDataKey*",
+        "kms:DescribeKey"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowAttachmentOfPersistentResources",
+      "Action": [
+        "kms:CreateGrant",
+        "kms:ListGrants",
+        "kms:RevokeGrant"
+      ],
+      "Effect": "Allow",
+      "Resource": "*",
+      "Condition": {
+        "Bool": {
+          "kms:GrantIsForAWSResource": "true"
+        }
+      }
     }
   ]
 }

@@ -2,13 +2,12 @@
 
 set -e
 
-region=$1
-env=$2
-action=$3
-kops=$4
+client=$1
+action=$2
+
 
 function help() {
-    echo "run.sh [Region] [Environment] [Action] [kops]"
+    echo "run.sh [client] [action]"
     exit 1
 }
 
@@ -75,15 +74,49 @@ function tf_destroy() {
         "${module_dir}"
 }
 
-function kops_create() {
-    echo "Creating Kops resources"
-    echo
-    kops_dir="${env_dir}/kops"
-    scripts/create.sh "${region}" "${env}" "${aws_account}"
-    if [[ $? -ne 0 ]]; then
-        echo "Problem creating Kops resources"
-    fi
+function import() {
+    tf_dir=$1
+    module_dir=$2
+    tf_init ${tf_dir} ${module_dir}
+    tf_import ${tf_dir} ${module_dir}
 }
+
+function plan() {
+    tf_dir=$1
+    module_dir=$2
+    tf_init ${tf_dir} ${module_dir}
+    tf_plan ${tf_dir} ${module_dir}
+}
+
+function apply() {
+    tf_dir=$1
+    module_dir=$2
+    tf_init ${tf_dir} ${module_dir}
+    tf_apply ${tf_dir} ${module_dir}
+}
+
+function detroy() {
+    tf_dir=$1
+    module_dir=$2
+    echo "${tf_dir} ${module_dir}"
+    tf_init "${tf_dir}" "${module_dir}"
+    tf_plan_destroy "${tf_dir}" "${module_dir}"
+    echo "Are you sure you want to destroy ${tf_dir}? y/n"
+    read yes_answer
+    if [[ $yes_answer != "y" ]]; then
+        echo "quitting"
+        exit 0
+    fi
+    tf_destroy "${tf_dir}" "${module_dir}"
+}
+
+
+
+if [ -z "$client" ]; then
+    echo "Client is not provided"
+    echo
+    help
+fi
 
 if [ -z "$action" ]; then
     echo "Action is not provided"
@@ -97,100 +130,59 @@ else
     cloud="${aws_cloud}"
 fi
 
-if [ -z "$region" ]; then
-    echo "Region is not provided"
-    echo
-    help
-fi
-if [ -z "$env" ]; then
-    echo "Environment is not provided"
-    echo
-    help
-fi
+source_dir="${cloud}/${client}/source"
+destination_dir="${cloud}/${client}/destination"
 
-if [ -z "$aws_account" ]; then
-    echo 'Please set aws_account: `export aws_account=prod|non-prod`'
-    echo
+if [ ! -d "$source_dir" ]; then
+    echo "${source_dir} directory does not exist"
+    exit 1
 fi
-
-env_dir="${cloud}/${region}/${aws_account}/${env}"
-
-if [ ! -d "$env_dir" ]; then
-    echo "${env_dir} directory does not exist"
+if [ ! -d "$destination_dir" ]; then
+    echo "${destination_dir} directory does not exist"
     exit 1
 fi
 
-module=$(cat "${env_dir}/module" 2>/dev/null)
-module_dir="modules/${module}"
+source_module_dir="modules/rds-snapshot-source"
+destination_module_dir="modules/rds-snapshot-destination"
 
-
-if [ -z "${env_dir}/module" ]; then
-    echo "${env_dir}/module file does not exist"
+if [ ! -d "$source_module_dir" ]; then
+    echo "${source_module_dir} directory does not exist"
     exit 1
 fi
-if [ -z "$module" ]; then
-    echo "${module} is empty"
-    exit 1
-fi
-if [ ! -d "$module_dir" ]; then
-    echo "${module_dir} directory does not exist"
+if [ ! -d "$destination_module_dir" ]; then
+    echo "${destination_module_dir} directory does not exist"
     exit 1
 fi
 
 # import
 if [ "$action" = "import" ];then
-    tf_init "${env_dir}" "${module_dir}"
-    tf_import "${env_dir}" "${module_dir}" $4 $5
+    echo; echo "### Source Import ###"; echo
+    import "${source_dir}" "${source_module_dir}"
+    echo; echo "### Destination Import ###"; echo
+    import "${destination_dir}" "${destination_module_dir}"
 fi
 
 
 # Plan
 if [ "$action" = "plan" ]; then
-    tf_init "${env_dir}" "${module_dir}"
-    tf_plan "${env_dir}" "${module_dir}"
-
+    echo; echo "### Source Plan ###"; echo
+    plan "${source_dir}" "${source_module_dir}"
+    echo; echo "### Destination Plan ###"; echo
+    plan "${destination_dir}" "${destination_module_dir}"
 fi
 
 # Apply
 if [ "$action" = "apply" ]; then
-    tf_init "${env_dir}" "${module_dir}"
-    tf_plan "${env_dir}" "${module_dir}"
-    
-    if [ -n "$kops" ] && [ "$kops" = "kops" ]; then
-        echo "***********************************************************"
-        echo "Are you sure you want to apply the above plan? type (y/n)"
-        echo "If there are no changes, type y to continue generating kops"
-        echo "***********************************************************"
-    else
-        echo "**************************************************"
-        echo "Are you sure you want to apply the above plan? type (y/n)"
-        echo "**************************************************"
-    fi
-    
-    read yes_answer
-    if [[ $yes_answer != "y" ]]; then
-        echo "quitting"
-        exit 0
-    fi
-
-    tf_apply "${env_dir}"
-    # Create kops TF outputs if flag is set
-    if [ -n "$kops" ] && [ "$kops" = "kops" ]; then
-        kops_create
-    fi
+    echo; echo "### Source Apply ###"; echo
+    apply "${source_dir}" "${source_module_dir}"
+    echo; echo "### Destination Apply ###"; echo
+    apply "${destination_dir}" "${destination_module_dir}"
 fi
 
 # Destroy
 if [ "$action" = "destroy" ]; then
-    echo "${env_dir} ${module_dir}"
-    tf_init "${env_dir}" "${module_dir}"
-    tf_plan_destroy "${env_dir}" "${module_dir}"
-    echo "Are you sure you want to destroy ${env_dir}? y/n"
-    read yes_answer
-    if [[ $yes_answer != "y" ]]; then
-        echo "quitting"
-        exit 0
-    fi
-
-    tf_destroy "${env_dir}" "${module_dir}"
+    echo; echo "### Source Destroy ###"; echo
+    destroy "${source_dir}" "${source_module_dir}"
+    echo; echo "### Destination Destroy ###"; echo
+    destroy "${destination_dir}" "${destination_module_dir}"
 fi

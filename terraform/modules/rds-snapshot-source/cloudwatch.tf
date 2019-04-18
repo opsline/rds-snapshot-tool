@@ -12,7 +12,7 @@ resource "aws_cloudwatch_metric_alarm" "alarm_cw_backups_failed" {
   alarm_actions       = ["${aws_sns_topic.backups_failed_topic.arn}"]
 
   dimensions {
-    StateMachineArn = "${aws_sfn_state_machine.take_rds_snapshot.arn}"
+    StateMachineArn = "${aws_sfn_state_machine.take_rds_snapshot.id}"
   }
 }
 
@@ -28,7 +28,7 @@ resource "aws_cloudwatch_metric_alarm" "alarm_cw_share_failed" {
   alarm_actions       = ["${aws_sns_topic.share_failed_topic.arn}"]
 
   dimensions {
-    StateMachineArn = "${aws_sfn_state_machine.share_rds_snapshot.arn}"
+    StateMachineArn = "${aws_sfn_state_machine.share_rds_snapshot.id}"
   }
 }
 
@@ -44,7 +44,7 @@ resource "aws_cloudwatch_metric_alarm" "alarm_cw_delete_old_failed" {
   alarm_actions       = ["${aws_sns_topic.delete_old_failed_topic.arn}"]
 
   dimensions {
-    StateMachineArn = "${aws_sfn_state_machine.delete_old_rds_snapshot.arn}"
+    StateMachineArn = "${aws_sfn_state_machine.delete_old_rds_snapshot.id}"
   }
 }
 
@@ -83,38 +83,3 @@ resource "aws_cloudwatch_log_group" "delete_old_rds_snapshot_lambda_lg" {
   name              = "/aws/lambda/delete_old_rds_snapshot_function"
   retention_in_days = "${var.retention_days}"
 }
-
-# Destination Resources
-
-resource "aws_cloudwatch_metric_alarm" "rds_copy_failed_dest_alarm" {
-  alarm_name          = "rds_copy_failed_dest_alarm"
-  comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods  = "1"
-  metric_name         = "ExecutionsFailed"
-  namespace           = "AWS/States"
-  period              = "300"
-  statistic           = "Sum"
-  threshold           = "1"
-  alarm_actions       = ["${aws_sns_topic.rds_copy_failed_dest_topic.arn}"]
-
-  dimensions {
-    StateMachineArn = "" # remember to set this
-  }
-}
-
-resource "aws_cloudwatch_metric_alarm" "rds_delete_old_failed_dest_alarm" {
-  alarm_name          = "rds_delete_old_failed_dest_alarm"
-  comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods  = "2"
-  metric_name         = "ExecutionsFailed"
-  namespace           = "AWS/States"
-  period              = "3600"
-  statistic           = "Sum"
-  threshold           = "2"
-  alarm_actions       = ["${aws_sns_topic.rds_delete_old_failed_dest_topic.arn}"]
-
-  dimensions {
-    StateMachineArn = "" # remember to set this
-  }
-}
-
