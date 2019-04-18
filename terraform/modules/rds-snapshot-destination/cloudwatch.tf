@@ -12,7 +12,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_copy_failed_dest_alarm" {
   alarm_actions       = ["${aws_sns_topic.rds_copy_failed_dest_topic.arn}"]
 
   dimensions {
-    StateMachineArn = "" # remember to set this
+    StateMachineArn = "${aws_sfn_state_machine.copy_rds_snapshot_dest.id}"
   }
 }
 
@@ -28,7 +28,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_delete_old_failed_dest_alarm" {
   alarm_actions       = ["${aws_sns_topic.rds_delete_old_failed_dest_topic.arn}"]
 
   dimensions {
-    StateMachineArn = "" # remember to set this
+    StateMachineArn = "${aws_sfn_state_machine.delete_old_rds_snapshot_dest.id}"
   }
 }
 

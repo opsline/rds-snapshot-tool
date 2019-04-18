@@ -92,10 +92,21 @@ function apply() {
     tf_dir=$1
     module_dir=$2
     tf_init ${tf_dir} ${module_dir}
-    tf_apply ${tf_dir} ${module_dir}
+    tf_plan "${tf_dir}" "${module_dir}"
+    
+    echo "**************************************************"
+    echo "Are you sure you want to apply the above plan? type (y/n)"
+    echo "**************************************************"
+    
+    read yes_answer
+    if [[ $yes_answer != "y" ]]; then
+        echo "quitting"
+        exit 0
+    fi
+    tf_apply ${tf_dir}
 }
 
-function detroy() {
+function destroy() {
     tf_dir=$1
     module_dir=$2
     echo "${tf_dir} ${module_dir}"

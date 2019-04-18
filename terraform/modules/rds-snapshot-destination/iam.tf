@@ -1,7 +1,7 @@
 # Destination Resources
 
 resource "aws_iam_role" "rds_snapshot_role" {
-  name = "rds_snapshot_role"
+  name = "rds_snapshot_dest_role"
 
   assume_role_policy = <<EOF
 {
@@ -109,7 +109,7 @@ EOF
 }
 
 resource "aws_iam_role" "state_execution_role" {
-  name = "state_execution_role"
+  name = "state_execution_dest_role"
 
   assume_role_policy = <<EOF
 {
@@ -149,7 +149,7 @@ EOF
 }
 
 resource "aws_iam_role" "step_invocation_role" {
-  name = "step_invocation_role"
+  name = "step_invocation_dest_role"
 
   assume_role_policy = <<EOF
 {
