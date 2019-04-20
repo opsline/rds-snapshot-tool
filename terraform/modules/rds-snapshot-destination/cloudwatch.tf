@@ -46,6 +46,19 @@ resource "aws_cloudwatch_event_rule" "delete_old_rds_snapshot_dest_event" {
   role_arn            = "${aws_iam_role.step_invocation_role.arn}"
 }
 
+resource "aws_cloudwatch_event_target" "copy_rds_snapshot_dest_event_target" {
+  target_id = "copy_rds_snapshot_dest_target"
+  arn       = "${aws_sfn_state_machine.copy_rds_snapshot_dest.id}"
+  rule      = "${aws_cloudwatch_event_rule.copy_rds_snapshot_event.name}"
+  role_arn  = "${aws_iam_role.step_invocation_role.arn}"
+}
+resource "aws_cloudwatch_event_target" "delete_old_rds_snapshot_dest_event_target" {
+  target_id = "delete_old_rds_snapshot_dest_target"
+  arn       = "${aws_sfn_state_machine.delete_old_rds_snapshot_dest.id}"
+  rule      = "${aws_cloudwatch_event_rule.delete_old_rds_snapshot_dest_event.name}"
+  role_arn  = "${aws_iam_role.step_invocation_role.arn}"
+}
+
 resource "aws_cloudwatch_log_group" "copy_rds_snapshot_lambda_lg" {
   name              = "/aws/lambda/copy_rds_snapshot_lambda_lg"
   retention_in_days = "${var.retention_days}"
