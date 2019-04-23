@@ -4,7 +4,7 @@
 region = "us-east-1"
 profile = "opsline-corp"
 
-# log_level = "ERROR"
+log_level = "INFO"
 # retention_days = "7"
 destination_account = "253379484728"
 # source_region_override = "NO"
