@@ -37,10 +37,10 @@ data "aws_iam_policy_document" "rds_snapshot_topic_policy" {
 
     condition {
       test     = "StringEquals"
-      variable = "AWS::AccountId"
+      variable = "AWS:SourceOwner"
 
       values = [
-        "AWS:SourceOwner",
+        "${var.source_account}",
       ]
     }
   }
