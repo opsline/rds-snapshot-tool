@@ -16,6 +16,7 @@ resource "aws_cloudwatch_metric_alarm" "alarm_cw_backups_failed" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "alarm_cw_share_failed" {
+  count               = "${var.share_snapshots == true ? 1 : 0}"
   alarm_name          = "rds_snapshot_share_failed"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "2"
@@ -32,6 +33,7 @@ resource "aws_cloudwatch_metric_alarm" "alarm_cw_share_failed" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "alarm_cw_delete_old_failed" {
+  count               = "${var.delete_old_snapshots == true ? 1 : 0}"
   alarm_name          = "rds_snapshot_delete_old_failed"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "2"
@@ -55,6 +57,7 @@ resource "aws_cloudwatch_event_rule" "take_rds_snapshot_event" {
 }
 
 resource "aws_cloudwatch_event_rule" "share_rds_snapshot_event" {
+  count               = "${var.share_snapshots == true ? 1 : 0}"
   name                = "share_rds_snapshot_event"
   description         = "Triggers the ShareSnapshotsRDS state machine"
   schedule_expression = "cron(/10 * * * ? *)"
@@ -62,6 +65,7 @@ resource "aws_cloudwatch_event_rule" "share_rds_snapshot_event" {
 }
 
 resource "aws_cloudwatch_event_rule" "delete_old_rds_snapshot_event" {
+  count               = "${var.delete_old_snapshots == true ? 1 : 0}"
   name                = "delete_old_rds_snapshot_event"
   description         = "Triggers the DeleteOldSnapshotsRDS state machine"
   schedule_expression = "cron(0 /1 * * ? *)"
@@ -74,13 +78,17 @@ resource "aws_cloudwatch_event_target" "take_rds_snapshot_event_target" {
   rule      = "${aws_cloudwatch_event_rule.take_rds_snapshot_event.name}"
   role_arn  = "${aws_iam_role.step_invocation_role.arn}"
 }
+
 resource "aws_cloudwatch_event_target" "share_rds_snapshot_event_target" {
+  count     = "${var.share_snapshots == true ? 1 : 0}"
   target_id = "share_rds_snapshot_target"
   arn       = "${aws_sfn_state_machine.share_rds_snapshot.id}"
   rule      = "${aws_cloudwatch_event_rule.share_rds_snapshot_event.name}"
   role_arn  = "${aws_iam_role.step_invocation_role.arn}"
 }
+
 resource "aws_cloudwatch_event_target" "delete_old_rds_snapshot_event_target" {
+  count     = "${var.delete_old_snapshots == true ? 1 : 0}"
   target_id = "delete_old_rds_snapshot_target"
   arn       = "${aws_sfn_state_machine.delete_old_rds_snapshot.id}"
   rule      = "${aws_cloudwatch_event_rule.delete_old_rds_snapshot_event.name}"
@@ -89,15 +97,17 @@ resource "aws_cloudwatch_event_target" "delete_old_rds_snapshot_event_target" {
 
 resource "aws_cloudwatch_log_group" "take_rds_snapshot_lambda_lg" {
   name              = "/aws/lambda/take_rds_snapshot_function"
-  retention_in_days = "${var.retention_days}"
+  retention_in_days = "${var.lambda_cw_log_retention}"
 }
 
 resource "aws_cloudwatch_log_group" "share_rds_snapshot_lambda_lg" {
+  count             = "${var.share_snapshots == true ? 1 : 0}"
   name              = "/aws/lambda/share_rds_snapshot_function"
-  retention_in_days = "${var.retention_days}"
+  retention_in_days = "${var.lambda_cw_log_retention}"
 }
 
 resource "aws_cloudwatch_log_group" "delete_old_rds_snapshot_lambda_lg" {
+  count             = "${var.delete_old_snapshots == true ? 1 : 0}"
   name              = "/aws/lambda/delete_old_rds_snapshot_function"
-  retention_in_days = "${var.retention_days}"
+  retention_in_days = "${var.lambda_cw_log_retention}"
 }

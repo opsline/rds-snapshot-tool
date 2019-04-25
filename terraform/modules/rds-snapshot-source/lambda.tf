@@ -22,6 +22,7 @@ resource "aws_lambda_function" "take_rds_snapshot_function" {
 }
 
 resource "aws_lambda_function" "share_rds_snapshot_function" {
+  count         = "${var.share_snapshots == true ? 1 : 0}"
   function_name = "share_rds_snapshot_function"
   s3_bucket     = "snapshots-tool-rds-${var.region}"
   s3_key        = "share_snapshots_rds.zip"
@@ -44,6 +45,7 @@ resource "aws_lambda_function" "share_rds_snapshot_function" {
 }
 
 resource "aws_lambda_function" "delete_old_rds_snapshot_function" {
+  count         = "${var.delete_old_snapshots == true ? 1 : 0}"
   function_name = "delete_old_rds_snapshot_function"
   s3_bucket     = "snapshots-tool-rds-${var.region}"
   s3_key        = "delete_old_snapshots_rds.zip"
@@ -52,7 +54,7 @@ resource "aws_lambda_function" "delete_old_rds_snapshot_function" {
 
   environment {
     variables = {
-      RETENTION_DAYS  = "${var.backup_interval}"
+      RETENTION_DAYS  = "${var.retention_days}"
       PATTERN         = "${var.instance_name_pattern}"
       LOG_LEVEL       = "${var.log_level}"
       REGION_OVERRIDE = "${var.source_region_override}"

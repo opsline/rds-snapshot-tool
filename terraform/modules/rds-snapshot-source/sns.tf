@@ -47,7 +47,7 @@ data "aws_iam_policy_document" "rds_snapshot_topic_policy" {
 }
 
 resource "aws_sns_topic_policy" "backups_failed_topic_policy" {
-  arn = "${aws_sns_topic.backups_failed_topic.arn}"
+  arn   = "${aws_sns_topic.backups_failed_topic.arn}"
 
   policy = "${data.aws_iam_policy_document.rds_snapshot_topic_policy.json}"
 }

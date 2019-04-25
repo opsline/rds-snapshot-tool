@@ -48,7 +48,7 @@ variable "source_region_override" {
 
 variable "snapshot_pattern" {
   type = "string"
-  default = ".*"
+  default = "ALL_SNAPSHOTS"
 
   # Default: ALL_SNAPSHOTS
   # Description: "Python regex for matching instance names to backup. Use "ALL_SNAPSHOTS" to back up every RDS instance in the region."
@@ -81,3 +81,18 @@ variable "cross_account_copy" {
   # Description: 'Enable copying snapshots across accounts. Set to FALSE if your source snapshosts are not on a different account'
   # AllowedValues: 'TRUE' OR 'FALSE'
 } 
+
+variable "delete_old_snapshots" {
+  type    = "string"
+  default = "true"
+
+  # Description: "Set to true to enable deletion of snapshot based on RetentionDays. Set to false to disable"
+  # AllowedValues: "true" OR "false"
+}
+
+variable "lambda_cw_log_retention" {
+  type    = "string"
+  default = "7"
+
+  # Description: "string of days to retain logs from the lambda functions in CloudWatch Logs"
+}

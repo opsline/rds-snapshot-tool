@@ -1,4 +1,3 @@
-
 resource "aws_sfn_state_machine" "take_rds_snapshot" {
   name     = "take_rds_snapshot"
   role_arn = "${aws_iam_role.state_execution_role.arn}"
@@ -33,6 +32,7 @@ EOF
 }
 
 resource "aws_sfn_state_machine" "share_rds_snapshot" {
+  count    = "${var.share_snapshots == true ? 1 : 0}"
   name     = "share_rds_snapshot"
   role_arn = "${aws_iam_role.state_execution_role.arn}"
 
@@ -66,6 +66,7 @@ EOF
 }
 
 resource "aws_sfn_state_machine" "delete_old_rds_snapshot" {
+  count    = "${var.delete_old_snapshots == true ? 1 : 0}"
   name     = "delete_old_rds_snapshot"
   role_arn = "${aws_iam_role.state_execution_role.arn}"
 

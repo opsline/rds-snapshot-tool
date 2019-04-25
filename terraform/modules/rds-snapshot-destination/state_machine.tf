@@ -32,6 +32,7 @@ EOF
 }
 
 resource "aws_sfn_state_machine" "delete_old_rds_snapshot_dest" {
+  count       = "${var.delete_old_snapshots == true ? 1 : 0}"
   name     = "delete_old_rds_snapshot_dest"
   role_arn = "${aws_iam_role.state_execution_role.arn}"
 
@@ -42,7 +43,7 @@ resource "aws_sfn_state_machine" "delete_old_rds_snapshot_dest" {
   "States": {
     "DeleteOldDestRegion": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:${var.region}:${var.destination_account}:function:delete_old_rds_snapshot_function",
+      "Resource": "arn:aws:lambda:${var.region}:${var.destination_account}:function:delete_old_rds_snapshot_dest_function",
       "Retry": [
         {
           "ErrorEquals": [ "SnapshotToolException" ],

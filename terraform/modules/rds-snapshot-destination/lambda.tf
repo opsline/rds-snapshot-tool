@@ -52,9 +52,9 @@ resource "aws_lambda_function" "copy_rds_snapshot_function" {
   timeout = "300"
 }
 
-resource "aws_lambda_function" "delete_old_rds_snapshot_xaccount_function" {
-  count         = "${var.cross_account_copy == true ? 1 : 0}"                                               # true = cross account
-  function_name = "delete_old_rds_snapshot_function"
+resource "aws_lambda_function" "delete_old_rds_snapshot_dest_xaccount_function" {
+  count         = "${var.cross_account_copy == true && var.delete_old_snapshots == true ? 1 : 0}"                                               # true = cross account
+  function_name = "delete_old_rds_snapshot_dest_function"
   s3_bucket     = "snapshots-tool-rds-${var.region}"
   s3_key        = "delete_old_snapshots_dest_rds.zip"
   memory_size   = "512"
@@ -75,9 +75,9 @@ resource "aws_lambda_function" "delete_old_rds_snapshot_xaccount_function" {
   timeout = "300"
 }
 
-resource "aws_lambda_function" "delete_old_rds_snapshot_function" {
-  count         = "${var.cross_account_copy == false ? 1 : 0}"                                              # false = not cross account
-  function_name = "delete_old_rds_snapshot_function"
+resource "aws_lambda_function" "delete_old_rds_snapshot_dest_function" {
+  count         = "${var.cross_account_copy == false && var.delete_old_snapshots == true ? 1 : 0}"                                               # false = not cross account
+  function_name = "delete_old_rds_snapshot_dest_function"
   s3_bucket     = "snapshots-tool-rds-${var.region}"
   s3_key        = "delete_old_snapshots_no_x_account_rds.zip"
   memory_size   = "512"

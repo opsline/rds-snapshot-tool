@@ -19,7 +19,7 @@ variable "profile" {
 
 variable "instance_name_pattern" {
   type = "string"
-  default = ".*"
+  default = "ALL_INSTANCES"
 
   # Default: ALL_INSTANCES
   # Description: "Python regex for matching cluster identifiers to backup. Use "ALL_INSTANCES" to back up every RDS instance in the region."
@@ -48,7 +48,7 @@ variable "source_account" {
 
 variable "share_snapshots" {
   type    = "string"
-  default = "true"
+  default = "false"
 
   # AllowedValues: "true" OR "false"
 }
