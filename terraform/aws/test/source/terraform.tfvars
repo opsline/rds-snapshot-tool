@@ -6,7 +6,7 @@ profile = "opsline-corp"
 
 source_account = "253379484728"
 # code_bucket = "DEFAULT_BUCKET"
-# instance_name_pattern = "ALL_INSTANCES"
+instance_name_pattern = "ur1m96w98n8nm53"
 backup_interval = "1"
 destination_account = "253379484728"
 share_snapshots = "false"

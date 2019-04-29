@@ -58,6 +58,7 @@ resource "aws_iam_role_policy" "rds_snapshot_policy" {
         "rds:DescribeDBSnapshots",
         "rds:ModifyDBSnapshotAttribute",
         "rds:DescribeDBSnapshotAttributes",
+        "rds:CopyDBSnapshot",
         "rds:ListTagsForResource"
       ],
       "Effect": "Allow",

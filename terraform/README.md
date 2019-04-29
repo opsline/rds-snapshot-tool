@@ -1,0 +1,3 @@
+# RDS Snapshot with Terraform
+
+In this contains the terraform scripts ported from the cloudformation templates to create the rds_snapshot setup. Most settings are one-to-one with the original, however because of limited logic within Terraform, some changes had to be made. Primarily, the source and destination configuration files are separate and somewhat redundant. The `run.sh` script takes this into account, but both source and destination needs to be configured properly.
